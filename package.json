@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "truffle-privatekey-provider": "^0.1.0",
     "web3-wallet": "^0.5.0"
   }
 }
