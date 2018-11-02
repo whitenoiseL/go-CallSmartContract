@@ -13,8 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/core/types"
 	"time"
 )
 
@@ -79,27 +77,7 @@ func setAuth(client *ethclient.Client) *bind.TransactOpts{
 	return auth
 }
 
-func subLogs() (ethereum.Subscription, chan types.Log){
-	url_wss := "ws://127.0.0.1:8546"
-	fmt.Println(url_wss)
-	//url_wss := "/home/liyuankun/parity/parity-deploy/data/1/jsonrpc.ipc"
-	client, err := ethclient.Dial(url_wss)
-	if err != nil {
-		fmt.Println(1)
-		log.Fatal(err)
-	}
-	contractAddress := common.HexToAddress(ContractAddress)
-	query := ethereum.FilterQuery{
-		Addresses: []common.Address{contractAddress},
-	}
 
-	logs := make(chan types.Log)
-	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
-	if err != nil{
-		log.Fatal(err)
-	}
-	return sub,logs
-}
 
 func deployContract(client *ethclient.Client,auth *bind.TransactOpts) (string, string){
 	address, tx, instance, err := try.DeployTry(auth, client)
@@ -128,8 +106,12 @@ func main(){
 	tryCore := loadContract(client)
 
 	//Get event log
-	sub,logs := subLogs()
-
+	//sink := make(chan *try.TryItemSet)
+	//watchOpts := &bind.WatchOpts{nil,nil}
+	//sub, err := tryCore.WatchItemSet(watchOpts, sink)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 	//Call function
 	//Set Id
 	tx, err := tryCore.SetId(auth,3000)
@@ -137,17 +119,18 @@ func main(){
 		log.Fatal(err)
 	}
 	fmt.Println(tx.Hash().Hex())
+
 	//Get logs
-	for {
-		select {
-		case err := <-sub.Err():
-			log.Fatal(err)
-		case vLog := <-logs:
-			fmt.Println(vLog)
-		}
-	}
-	//Get Id
 	time.Sleep(time.Second*2)
+	//for {
+	//	select {
+	//	case err := <-sub.Err():
+	//		log.Fatal(err)
+	//	case vLog := <-sink:
+	//		fmt.Println(vLog.Raw)
+	//	}
+	//}
+	//Get Id
 	res, err := tryCore.GetId(nil)
 	fmt.Println(res)
 
